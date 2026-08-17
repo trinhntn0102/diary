@@ -1,0 +1,903 @@
+<!DOCTYPE html>
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1">
+
+    <title>Diary</title>
+
+    <!-- Bootstrap 5 -->
+    <link
+            href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+            rel="stylesheet">
+
+    <style>
+
+        body {
+            background-color: #f8f9fa;
+        }
+
+        .card {
+            border-radius: 10px;
+        }
+
+        /* =========================================
+           WORKDAY PROCESS
+           ========================================= */
+
+        .workday-line {
+            position: relative;
+            height: 8px;
+            background-color: #e9ecef;
+            border-radius: 10px;
+
+            margin-top: 45px;
+            margin-bottom: 35px;
+        }
+
+        .workday-progress {
+            position: absolute;
+
+            top: 0;
+            left: 0;
+
+            height: 8px;
+            width: 0%;
+
+            background-color: #0d6efd;
+
+            border-radius: 10px;
+
+            transition: width 0.5s ease;
+        }
+
+        .current-point {
+            position: absolute;
+
+            top: 50%;
+            left: 0%;
+
+            transform: translate(-50%, -50%);
+
+            width: 18px;
+            height: 18px;
+
+            background-color: white;
+
+            border: 4px solid #0d6efd;
+
+            border-radius: 50%;
+
+            transition: left 0.5s ease;
+        }
+
+        .time-label {
+            position: absolute;
+
+            top: -30px;
+
+            color: #6c757d;
+
+            font-size: 13px;
+        }
+
+        .time-label.start {
+            left: 0;
+        }
+
+        .time-label.end {
+            right: 0;
+        }
+
+        .current-time {
+            position: absolute;
+
+            top: 18px;
+            left: 0%;
+
+            transform: translateX(-50%);
+
+            color: #0d6efd;
+
+            font-size: 13px;
+
+            font-weight: 600;
+
+            white-space: nowrap;
+
+            transition: left 0.5s ease;
+        }
+
+        .progress-info {
+            font-size: 14px;
+            color: #6c757d;
+        }
+
+
+        /* =========================================
+           TIMELINE
+           ========================================= */
+
+        .timeline-icon {
+
+            width: 50px;
+            height: 50px;
+
+            min-width: 50px;
+
+            border-radius: 50%;
+
+            background-color: #0d6efd;
+
+            color: white;
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: center;
+        }
+
+
+        /* =========================================
+           RESPONSIVE
+           ========================================= */
+
+        @media (max-width: 576px) {
+
+            .current-time {
+                font-size: 11px;
+            }
+
+            .time-label {
+                font-size: 11px;
+            }
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+<div class="container py-4">
+
+
+    <!-- ================================================= -->
+    <!-- SUBJECT HEADER -->
+    <!-- ================================================= -->
+
+    <div class="card shadow-sm mb-4">
+
+        <div class="card-body">
+
+            <div class="d-flex align-items-center">
+
+                <!-- Subject code -->
+
+                <div class="me-3">
+
+                    <span class="badge bg-primary"
+                          th:text="${subject.subjectCode}">
+
+                        17082026
+
+                    </span>
+
+                </div>
+
+
+                <!-- Subject -->
+
+                <div>
+
+                    <h2 class="mb-0"
+                        th:text="${subject.subjectName}">
+
+                        Ngày 17/08/2026
+
+                    </h2>
+
+                    <span class="text-muted">
+
+                        Subject
+
+                    </span>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ================================================= -->
+    <!-- WORKDAY PROGRESS -->
+    <!-- ================================================= -->
+
+    <div class="card shadow-sm mb-4">
+
+        <div class="card-body">
+
+
+            <!-- Header -->
+
+            <div class="d-flex
+                        justify-content-between
+                        align-items-center">
+
+
+                <div>
+
+                    <h5 class="fw-bold mb-1">
+
+                        Workday Progress
+
+                    </h5>
+
+                    <div class="progress-info">
+
+                        09:00 - 18:00
+
+                    </div>
+
+                </div>
+
+
+                <!-- Percentage -->
+
+                <div class="text-end">
+
+                    <div id="progressPercent"
+                         class="fw-bold fs-4 text-primary">
+
+                        0%
+
+                    </div>
+
+                    <small class="text-muted">
+
+                        Workday elapsed
+
+                    </small>
+
+                </div>
+
+            </div>
+
+
+            <!-- ================================================= -->
+            <!-- PROCESS LINE -->
+            <!-- ================================================= -->
+
+            <div class="workday-line">
+
+
+                <!-- Progress -->
+
+                <div id="workdayProgress"
+                     class="workday-progress">
+                </div>
+
+
+                <!-- Current point -->
+
+                <div id="currentPoint"
+                     class="current-point">
+                </div>
+
+
+                <!-- Start -->
+
+                <span class="time-label start">
+
+                    09:00
+
+                </span>
+
+
+                <!-- End -->
+
+                <span class="time-label end">
+
+                    18:00
+
+                </span>
+
+
+                <!-- Current time -->
+
+                <span id="currentTime"
+                      class="current-time">
+
+                    09:00
+
+                </span>
+
+            </div>
+
+
+            <!-- ================================================= -->
+            <!-- TIME INFORMATION -->
+            <!-- ================================================= -->
+
+            <div class="d-flex
+                        justify-content-between">
+
+
+                <!-- Morning -->
+
+                <div>
+
+                    <div class="fw-semibold">
+
+                        Morning
+
+                    </div>
+
+                    <small class="text-muted">
+
+                        09:00 - 12:00
+
+                    </small>
+
+                </div>
+
+
+                <!-- Lunch -->
+
+                <div class="text-center">
+
+                    <div class="fw-semibold">
+
+                        Lunch
+
+                    </div>
+
+                    <small class="text-muted">
+
+                        12:00 - 13:00
+
+                    </small>
+
+                </div>
+
+
+                <!-- Afternoon -->
+
+                <div class="text-end">
+
+                    <div class="fw-semibold">
+
+                        Afternoon
+
+                    </div>
+
+                    <small class="text-muted">
+
+                        13:00 - 18:00
+
+                    </small>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ================================================= -->
+    <!-- TIMELINE -->
+    <!-- ================================================= -->
+
+    <div class="card shadow-sm">
+
+        <div class="card-body">
+
+
+            <!-- Timeline header -->
+
+            <div class="d-flex
+                        justify-content-between
+                        align-items-center
+                        mb-4">
+
+
+                <h4 class="fw-bold mb-0">
+
+                    Timeline
+
+                </h4>
+
+
+                <!-- Add Event -->
+
+                <button type="button"
+                        class="btn btn-primary"
+                        data-bs-toggle="modal"
+                        data-bs-target="#addEventModal">
+
+                    + Add Event
+
+                </button>
+
+            </div>
+
+
+            <!-- ================================================= -->
+            <!-- EVENT LIST -->
+            <!-- ================================================= -->
+
+            <div th:each="event : ${subject.listDetail}"
+                 class="d-flex mb-4">
+
+
+                <!-- Timeline icon -->
+
+                <div class="me-3">
+
+                    <div class="timeline-icon">
+
+                        <span>●</span>
+
+                    </div>
+
+                </div>
+
+
+                <!-- Event content -->
+
+                <div class="flex-grow-1">
+
+
+                    <!-- Event title + time -->
+
+                    <div class="d-flex
+                                justify-content-between
+                                align-items-start">
+
+
+                        <!-- Event name -->
+
+                        <h6 class="fw-bold mb-1"
+                            th:text="${event.event}">
+
+                            Họp daily
+
+                        </h6>
+
+
+                        <!-- Event date -->
+
+                        <small class="text-muted ms-3"
+                               th:text="${#temporals.format(
+                                   event.actionDate,
+                                   'dd/MM/yyyy HH:mm:ss'
+                               )}">
+
+                            17/08/2026 09:00:00
+
+                        </small>
+
+                    </div>
+
+
+                    <!-- Event content -->
+
+                    <p class="text-muted mb-0"
+                       th:text="${event.content}">
+
+                        Họp báo cáo task hiện tại
+
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <!-- ================================================= -->
+            <!-- EMPTY EVENT -->
+            <!-- ================================================= -->
+
+            <div th:if="${#lists.isEmpty(subject.listDetail)}"
+                 class="text-center text-muted py-4">
+
+                Chưa có sự kiện nào.
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- ========================================================= -->
+<!-- ADD EVENT MODAL -->
+<!-- ========================================================= -->
+
+<div class="modal fade"
+     id="addEventModal"
+     tabindex="-1"
+     aria-labelledby="addEventModalLabel"
+     aria-hidden="true">
+
+
+    <div class="modal-dialog">
+
+        <div class="modal-content">
+
+
+            <!-- Modal header -->
+
+            <div class="modal-header">
+
+                <h5 class="modal-title"
+                    id="addEventModalLabel">
+
+                    Thêm sự kiện
+
+                </h5>
+
+
+                <button type="button"
+                        class="btn-close"
+                        data-bs-dismiss="modal"
+                        aria-label="Close">
+
+                </button>
+
+            </div>
+
+
+            <!-- ================================================= -->
+            <!-- FORM -->
+            <!-- ================================================= -->
+
+            <form th:action="@{/diary/{subjectId}/events(
+                                subjectId=${subject.id}
+                             )}"
+                  method="post">
+
+
+                <div class="modal-body">
+
+
+                    <!-- Event name -->
+
+                    <div class="mb-3">
+
+                        <label for="event"
+                               class="form-label">
+
+                            Tên sự kiện
+
+                        </label>
+
+
+                        <input type="text"
+                               class="form-control"
+                               id="event"
+                               name="event"
+                               placeholder="Nhập tên sự kiện"
+                               required>
+
+                    </div>
+
+
+                    <!-- Event content -->
+
+                    <div class="mb-3">
+
+                        <label for="content"
+                               class="form-label">
+
+                            Mô tả sự kiện
+
+                        </label>
+
+
+                        <textarea class="form-control"
+                                  id="content"
+                                  name="content"
+                                  rows="4"
+                                  placeholder="Nhập mô tả sự kiện"
+                                  required>
+                        </textarea>
+
+                    </div>
+
+                </div>
+
+
+                <!-- Modal footer -->
+
+                <div class="modal-footer">
+
+
+                    <button type="button"
+                            class="btn btn-secondary"
+                            data-bs-dismiss="modal">
+
+                        Hủy
+
+                    </button>
+
+
+                    <button type="submit"
+                            class="btn btn-primary">
+
+                        Thêm sự kiện
+
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- ========================================================= -->
+<!-- BOOTSTRAP JS -->
+<!-- ========================================================= -->
+
+<script
+        src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js">
+</script>
+
+
+<!-- ========================================================= -->
+<!-- WORKDAY PROGRESS JAVASCRIPT -->
+<!-- ========================================================= -->
+
+<script>
+
+    function updateWorkdayProgress() {
+
+        const now = new Date();
+
+
+        /*
+         * =========================================
+         * WORKING TIME
+         *
+         * 09:00 -> 12:00
+         * 13:00 -> 18:00
+         *
+         * Total = 8 hours = 480 minutes
+         * =========================================
+         */
+
+
+        const start = new Date();
+
+        start.setHours(9, 0, 0, 0);
+
+
+        const lunchStart = new Date();
+
+        lunchStart.setHours(12, 0, 0, 0);
+
+
+        const lunchEnd = new Date();
+
+        lunchEnd.setHours(13, 0, 0, 0);
+
+
+        const end = new Date();
+
+        end.setHours(18, 0, 0, 0);
+
+
+        let elapsedMinutes = 0;
+
+
+        /*
+         * =========================================
+         * BEFORE 09:00
+         * =========================================
+         */
+
+        if (now < start) {
+
+            elapsedMinutes = 0;
+
+        }
+
+
+        /*
+         * =========================================
+         * 09:00 -> 12:00
+         * =========================================
+         */
+
+        else if (now <= lunchStart) {
+
+            elapsedMinutes =
+                (now - start) / 60000;
+
+        }
+
+
+        /*
+         * =========================================
+         * 12:00 -> 13:00
+         *
+         * Lunch
+         * Progress does not increase
+         * =========================================
+         */
+
+        else if (now <= lunchEnd) {
+
+            elapsedMinutes = 180;
+
+        }
+
+
+        /*
+         * =========================================
+         * 13:00 -> 18:00
+         * =========================================
+         */
+
+        else if (now <= end) {
+
+            elapsedMinutes =
+                180 +
+                (now - lunchEnd) / 60000;
+
+        }
+
+
+        /*
+         * =========================================
+         * AFTER 18:00
+         * =========================================
+         */
+
+        else {
+
+            elapsedMinutes = 480;
+
+        }
+
+
+        /*
+         * =========================================
+         * CALCULATE %
+         *
+         * Total working time = 480 minutes
+         * =========================================
+         */
+
+        let percent =
+            (elapsedMinutes / 480) * 100;
+
+
+        /*
+         * Make sure:
+         *
+         * 0 <= percent <= 100
+         */
+
+        percent =
+            Math.max(
+                0,
+                Math.min(100, percent)
+            );
+
+
+        /*
+         * =========================================
+         * UPDATE PROGRESS BAR
+         * =========================================
+         */
+
+        document.getElementById(
+            "workdayProgress"
+        ).style.width =
+            percent + "%";
+
+
+        /*
+         * =========================================
+         * UPDATE CURRENT POINT
+         * =========================================
+         */
+
+        document.getElementById(
+            "currentPoint"
+        ).style.left =
+            percent + "%";
+
+
+        /*
+         * =========================================
+         * UPDATE CURRENT TIME POSITION
+         * =========================================
+         */
+
+        document.getElementById(
+            "currentTime"
+        ).style.left =
+            percent + "%";
+
+
+        /*
+         * =========================================
+         * UPDATE %
+         * =========================================
+         */
+
+        document.getElementById(
+            "progressPercent"
+        ).innerText =
+            percent.toFixed(1) + "%";
+
+
+        /*
+         * =========================================
+         * UPDATE CURRENT TIME
+         * =========================================
+         */
+
+        document.getElementById(
+            "currentTime"
+        ).innerText =
+            now.toLocaleTimeString(
+                "vi-VN",
+                {
+                    hour: "2-digit",
+                    minute: "2-digit"
+                }
+            );
+
+    }
+
+
+    /*
+     * =========================================
+     * INITIAL LOAD
+     * =========================================
+     */
+
+    updateWorkdayProgress();
+
+
+    /*
+     * =========================================
+     * UPDATE EVERY MINUTE
+     * =========================================
+     */
+
+    setInterval(
+        updateWorkdayProgress,
+        60000
+    );
+
+</script>
+
+
+</body>
+
+</html>
